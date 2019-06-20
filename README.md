@@ -1,6 +1,6 @@
 # recsys
 Recsys algorithms
 
-- deepfm
+- deepfm + tf serving + grpc/rest client
 - fm
 - gbdt + lr
