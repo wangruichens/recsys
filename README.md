@@ -7,4 +7,4 @@
 - gbdt + lr
 - ftrl (kaggle)
 - cade (Collaborative Denoising Auto-Encoder)
-- xdeepfm + tf estimator 
+- xdeepfm + tf estimator (using criteo)
