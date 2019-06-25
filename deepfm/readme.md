@@ -1,5 +1,24 @@
 # DeepFM Performance Analysis
 
+
+## Deepfm on criteo
+
+论文中CIN最终结果 logloss=0.4592. auc=0.7900。\
+实际实现最终结果 logloss=0.4608. auc=0.7888。
+
+![auc](auc.png)
+
+```angular2
+INFO:tensorflow:Evaluation [200/200]
+INFO:tensorflow:Finalize strategy.
+INFO:tensorflow:Finished evaluation at 2019-06-25-04:10:38
+INFO:tensorflow:Saving dict for global step 21500: AUC = 0.78889906, global_step = 21500, loss = 0.4608307
+```
+
+## 训练性能
+
+数据输入流调整 dataset->map->batch->shuffle->prefetch->repeat
+
 采用tf.distribute.MirroredStrategy()。2块1080ti GPU，优化input_fn后，GPU资源基本可以满载训练，大概 11 global_step/sec。
 
 estimator打出来的log可以看到，一块GPU和两块GPU的 global_step/sec几乎相同。但是实际上两块GPU每个step跑的是两份数据。[参考这里](http://keep.01ue.com/?pi=774414&_a=app&_c=index&_m=p)。比如同样条数的训练数据,同样epoch, 单GPU需要1000 step, 双GPU可能只需要500,600 step就可以跑完一轮。
@@ -40,6 +59,8 @@ INFO:tensorflow:loss = 0.28272614, step = 1160 (0.906 sec)
 INFO:tensorflow:global_step/sec: 11.0983
 ```
 
+## tfserving 响应时间
+
 使用grpc_client调用deepfm模型，serving在cpu上, 平均时间：
 ```angular2
 Batch size:  500
@@ -49,19 +70,4 @@ Predict time used: 0.36ms
 Batch size:  200
 Predict AUC:  0.6835420068953004
 Predict time used: 0.29ms
-```
-
-
-## Deepfm on criteo
-
-论文中CIN最终结果 logloss=0.4592. auc=0.7900。\
-实际实现最终结果 logloss=0.4608. auc=0.7888。
-
-![auc](auc.png)
-
-```angular2
-INFO:tensorflow:Evaluation [200/200]
-INFO:tensorflow:Finalize strategy.
-INFO:tensorflow:Finished evaluation at 2019-06-25-04:10:38
-INFO:tensorflow:Saving dict for global step 21500: AUC = 0.78889906, global_step = 21500, loss = 0.4608307
 ```
