@@ -20,7 +20,7 @@ tf.app.flags.DEFINE_string("cross_layers", '10,5,5', "cross layers")
 
 tf.app.flags.DEFINE_string("train_path", '/home/wangrc/criteo_data/train/', "Data path")
 tf.app.flags.DEFINE_integer("train_parts", 150, "Tfrecord counts")
-tf.app.flags.DEFINE_integer("eval_parts", 1, "Eval tfrecord")
+tf.app.flags.DEFINE_integer("eval_parts", 5, "Eval tfrecord")
 
 tf.app.flags.DEFINE_string("test_path", '/home/wangrc/criteo_data/test/', "Test path")
 tf.app.flags.DEFINE_integer("test_parts", 15, "Tfrecord counts")
