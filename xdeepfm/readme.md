@@ -2,7 +2,7 @@
 
 与deepfm一样，使用两块gpu训练。训练速度其实主要取决于embedding layers的大小。
 
-论文中CIN最终结果 logloss=0.4493. auc=0.8012。
+论文中CIN最终结果 logloss=0.4493. auc=0.8012。\
 实际实现最终结果 logloss=0.4548. auc=0.7950。
 
 可能是ffm数据预处理 & 超参数的原因
