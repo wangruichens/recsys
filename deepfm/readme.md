@@ -3,7 +3,7 @@
 
 ## Deepfm on criteo
 
-论文中CIN最终结果 logloss=0.4592. auc=0.7900。\
+论文中Deepfm最终结果 logloss=0.4592. auc=0.7900。\
 实际实现最终结果 logloss=0.4608. auc=0.7888。
 
 ![auc](auc.png)
