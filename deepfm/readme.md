@@ -38,24 +38,30 @@ INFO:tensorflow:loss = 0.23750155, step = 1150 (0.879 sec)
 INFO:tensorflow:global_step/sec: 11.0414
 INFO:tensorflow:loss = 0.28272614, step = 1160 (0.906 sec)
 INFO:tensorflow:global_step/sec: 11.0983
-
 ```
 
 使用grpc_client调用deepfm模型，serving在cpu上, 平均时间：
 ```angular2
 Batch size:  500
-Predict AUC:  0.656185817244856
-Predict time used: 0.37ms
-
-Batch size:  500
 Predict AUC:  0.6375953159041394
 Predict time used: 0.36ms
 
 Batch size:  200
-Predict AUC:  0.6865367839488224
-Predict time used: 0.32ms
-
-Batch size:  200
 Predict AUC:  0.6835420068953004
 Predict time used: 0.29ms
+```
+
+
+## Deepfm on criteo
+
+论文中CIN最终结果 logloss=0.4592. auc=0.7900。\
+实际实现最终结果 logloss=0.4608. auc=0.7888。
+
+![auc](auc.png)
+
+```angular2
+INFO:tensorflow:Evaluation [200/200]
+INFO:tensorflow:Finalize strategy.
+INFO:tensorflow:Finished evaluation at 2019-06-25-04:10:38
+INFO:tensorflow:Saving dict for global step 21500: AUC = 0.78889906, global_step = 21500, loss = 0.4608307
 ```

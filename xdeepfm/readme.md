@@ -5,7 +5,9 @@
 论文中CIN最终结果 logloss=0.4493. auc=0.8012。\
 实际实现最终结果 logloss=0.4548. auc=0.7950。
 
-可能是ffm数据预处理 & 超参数的原因
+略低于论文，可能是ffm数据预处理 & 超参数的原因。
+
+[对比deepfm](../deepfm/readme.md)
 
 ![auc](auc.png)
 
@@ -21,8 +23,7 @@ INFO:tensorflow:global_step/sec: 12.5842
 
 AUC:
 ```angular2
-INFO:tensorflow:Evaluation [160/200]
-INFO:tensorflow:Evaluation [180/200]
+
 INFO:tensorflow:Evaluation [200/200]
 INFO:tensorflow:Finalize strategy.
 INFO:tensorflow:Finished evaluation at 2019-06-25-02:38:15
