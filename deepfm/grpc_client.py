@@ -12,10 +12,6 @@ from sklearn.metrics import roc_auc_score
 #   --model_name=deepfm \
 #   --model_base_path="/home/wangrc/Desktop/"
 
-
-# 172.17.18.9 algorithmsdeepfm.2345.cn
-# algorithmsdeepfm.2345.cn:26389
-
 tf.app.flags.DEFINE_string('server', '172.17.18.9:26389',
                            'Server host:port.')
 tf.app.flags.DEFINE_string('test_file', 'test.csv',
@@ -52,45 +48,7 @@ def gen_data(filename, size=1000):
     batching = []
     for _, row in df.iterrows():
         feature_dict = {"u_id": _int_feature(row['u_id']),
-                        "i_id": _int_feature(row['i_id']),
-                        "i_channel": _bytes_feature(row['i_channel']),
-                        "u_brand": _bytes_feature(row['u_brand']),
-                        "u_operator": _bytes_feature(row['u_operator']),
-                        "u_activelevel": _bytes_feature(row['u_activelevel']),
-                        "u_age": _bytes_feature(row['u_age']),
-                        "u_marriage": _bytes_feature(row['u_marriage']),
-                        "u_sex": _bytes_feature(row['u_sex']),
-                        "u_sex_age": _bytes_feature(row['u_sex_age']),
-                        "u_sex_marriage": _bytes_feature(row['u_sex_marriage']),
-                        "u_age_marriage": _bytes_feature(row['u_age_marriage']),
-                        "i_hot_news": _bytes_feature(row['i_hot_news']),
-                        "i_is_recommend": _bytes_feature(row['i_is_recommend']),
-                        "i_info_exposed_amt": _float_feature(row['i_info_exposed_amt']),
-                        "i_info_clicked_amt": _float_feature(row['i_info_clicked_amt']),
-                        "i_info_ctr": _float_feature(row['i_info_ctr']),
-                        "i_cate_exposed_amt": _float_feature(row['i_cate_exposed_amt']),
-                        "i_cate_clicked_amt": _float_feature(row['i_cate_clicked_amt']),
-                        "i_category_ctr": _float_feature(row['i_category_ctr']),
-                        "c_uid_type_ctr_1": _float_feature(row['c_uid_type_ctr_1']),
-                        "c_uid_type_clicked_amt_1": _float_feature(row['c_uid_type_clicked_amt_1']),
-                        "c_uid_type_exposed_amt_1": _float_feature(row['c_uid_type_exposed_amt_1']),
-                        "c_uid_type_ctr_3": _float_feature(row['c_uid_type_ctr_3']),
-                        "c_uid_type_clicked_amt_3": _float_feature(row['c_uid_type_clicked_amt_3']),
-                        "c_uid_type_exposed_amt_3": _float_feature(row['c_uid_type_exposed_amt_3']),
-                        "c_uid_type_ctr_7": _float_feature(row['c_uid_type_ctr_7']),
-                        "c_uid_type_clicked_amt_7": _float_feature(row['c_uid_type_clicked_amt_7']),
-                        "c_uid_type_exposed_amt_7": _float_feature(row['c_uid_type_exposed_amt_7']),
-                        "c_uid_type_ctr_14": _float_feature(row['c_uid_type_ctr_14']),
-                        "c_uid_type_clicked_amt_14": _float_feature(row['c_uid_type_clicked_amt_14']),
-                        "c_uid_type_exposed_amt_14": _float_feature(row['c_uid_type_exposed_amt_14']),
-                        "c_user_flavor": _float_feature(row['c_user_flavor']),
-                        "u_activetime_at1": _float_feature(row['u_activetime_at1']),
-                        "u_activetime_at2": _float_feature(row['u_activetime_at2']),
-                        "u_activetime_at3": _float_feature(row['u_activetime_at3']),
-                        "u_activetime_at4": _float_feature(row['u_activetime_at4']),
-                        "u_activetime_at5": _float_feature(row['u_activetime_at5']),
-                        "i_mini_img_size": _float_feature(row['i_mini_img_size']),
-                        "i_comment_count": _float_feature(row['i_comment_count'])}
+                        "i_id": _int_feature(row['i_id'])}
         example = tf.train.Example(features=tf.train.Features(feature=feature_dict))
         serialized = example.SerializeToString()
         batching.append(serialized)
