@@ -8,3 +8,14 @@
 - ftrl (kaggle)
 - cade (Collaborative Denoising Auto-Encoder)
 - xdeepfm + tf estimator (criteo dataset)
+- dcn + tf estimator (criteo dataset)
+
+## Performance Summary
+
+- deepfm
+
+- xdeepfm
+
+- dcn
+
+- dnn

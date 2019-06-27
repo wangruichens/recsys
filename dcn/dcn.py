@@ -1,37 +1,41 @@
 # Auther        : wangruichen
-# Date          : 2019-06-21
-# Description   :
+# Date          : 2019-06-26
+# Description   : Deep and Cross Network (Using the same code template as xdeepfm)
 # Refers        :
 # Returns       :
 
-from tensorflow_estimator import estimator
-from time import time
 import tensorflow as tf
+from tensorflow_estimator import estimator
+import numpy as np
+from time import time
 import sys
 
+print(tf.__version__)
+print("GPU Available: ", tf.test.is_gpu_available())
+
 FLAGS = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_integer("embedding_size", 16, "Embedding size")
+# Model
+tf.app.flags.DEFINE_integer("embedding_size", 32, "Embedding size")
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
 tf.app.flags.DEFINE_float("dropout", 0.5, "Dropout rate")
 tf.app.flags.DEFINE_string("task_type", 'train', "Task type {train, infer, eval, export}")
-tf.app.flags.DEFINE_integer("num_epochs", 5, "Number of epochs")
+tf.app.flags.DEFINE_integer("num_epochs", 10, "Number of epochs")
 tf.app.flags.DEFINE_string("deep_layers", '100,100', "deep layers")
-tf.app.flags.DEFINE_string("cross_layers", '20,20,10', "cross layers")
+tf.app.flags.DEFINE_integer("cross_layers", 4, "cross layers")
 
+# Dataset
 tf.app.flags.DEFINE_string("train_path", '/home/wangrc/criteo_data/train/', "Data path")
 tf.app.flags.DEFINE_integer("train_parts", 150, "Tfrecord counts")
-tf.app.flags.DEFINE_integer("eval_parts", 10, "Eval tfrecord")
-
+tf.app.flags.DEFINE_integer("eval_parts", 5, "Eval tfrecord")
 tf.app.flags.DEFINE_string("test_path", '/home/wangrc/criteo_data/test/', "Test path")
 tf.app.flags.DEFINE_integer("test_parts", 15, "Tfrecord counts")
 
+# Config
 tf.app.flags.DEFINE_string("export_path", './export/', "Model export path")
 tf.app.flags.DEFINE_integer("batch_size", 256, "Number of batch size")
-tf.app.flags.DEFINE_integer("log_steps", 50, "Log_step_count_steps")
-tf.app.flags.DEFINE_integer("eval_steps", 200, "Eval_steps")
-
-tf.app.flags.DEFINE_integer("save_checkpoints_steps", 1000, "save_checkpoints_steps")
-tf.app.flags.DEFINE_boolean("mirror", True, "Mirrored Strategy")
+tf.app.flags.DEFINE_integer("log_steps", 100, "Log_step_count_steps")
+tf.app.flags.DEFINE_integer("save_checkpoints_steps", 2000, "save_checkpoints_steps")
+tf.app.flags.DEFINE_boolean("mirror", False, "Mirrored Strategy")
 
 cont_feature = ['_c{0}'.format(i) for i in range(0, 14)]
 cat_feature = ['_c{0}'.format(i) for i in range(14, 40)]
@@ -62,6 +66,7 @@ def build_feature_columns(embedding_size):
     c12 = [0.0, 1.0, 2.0]
     c13 = [1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 14.0, 22.0]
     buckets_cont = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13]
+
     buckets_cat = [1460, 583, 10131226, 2202607, 305, 23, 12517, 633, 3, 93145, 5683, 8351592, 3194, 27, 14992, 5461305,
                    10, 5652, 2172, 3, 7046546, 17, 15, 286180, 104, 142571]
 
@@ -69,15 +74,13 @@ def build_feature_columns(embedding_size):
                    10, 5652, 2172, 3, 100000, 17, 15, 100000, 104, 100000]
 
     for i, j in zip(cont_feature, buckets_cont):
-        f_num = tf.feature_column.numeric_column(i,
-                                                 default_value=0,
-                                                 normalizer_fn=lambda x: tf.log(x + 1.0))
+        # Can not using eplison. if x=0, log (x+eplison) may cause nan loss.
+        f_num = tf.feature_column.numeric_column(i, normalizer_fn=lambda x: tf.log(x + 1.0))
         f_bucket = tf.feature_column.bucketized_column(f_num, j)
         f_embedding = tf.feature_column.embedding_column(f_bucket, embedding_size)
 
         # TODO: With duplicated one-hot or not?
         # linear_feature_columns.append(tf.feature_column.indicator_column(f_bucket))
-
         linear_feature_columns.append(f_num)
         embedding_feature_columns.append(f_embedding)
 
@@ -87,6 +90,7 @@ def build_feature_columns(embedding_size):
         f_ind = tf.feature_column.indicator_column(f_cat)
         f_embedding = tf.feature_column.embedding_column(f_cat, embedding_size)
 
+        # According to the paper, Sparse feature is used only as embeddings.
         # linear_feature_columns.append(f_ind)
         embedding_feature_columns.append(f_embedding)
 
@@ -100,17 +104,6 @@ def _parse_examples(serial_exmp):
 
 
 def input_fn(filenames, batch_size, num_epochs=-1, need_shuffle=False):
-    """
-            The function should construct and return one of the following:
-            * A `tf.data.Dataset` object: Outputs of `Dataset` object must be a tuple
-            `(features, labels)` with same constraints as below.
-            * A tuple `(features, labels)`: Where `features` is a `tf.Tensor` or a dictionary
-            of string feature name to `Tensor` and `labels` is a `Tensor` or a
-            dictionary of string label name to `Tensor`.
-
-            Both `features` and `labels` are consumed by `model_fn`. They should satisfy the expectation
-            of `model_fn` from inputs.
-    """
     dataset = tf.data.TFRecordDataset(filenames)
     dataset = dataset.map(_parse_examples, num_parallel_calls=4).batch(batch_size)
     if need_shuffle:
@@ -121,77 +114,40 @@ def input_fn(filenames, batch_size, num_epochs=-1, need_shuffle=False):
 
 def model_fn(features, labels, mode, params):
     layers = list(map(int, params["deep_layers"].split(',')))
-    cross_layers = list(map(int, params["cross_layers"].split(',')))
 
+    # Not following the paper using dense feature here.
+    # Due to numerical stability
     linear_net = tf.feature_column.input_layer(features, params['linear_feature_columns'])
     embedding_net = tf.feature_column.input_layer(features, params['embedding_feature_columns'])
 
-    with tf.name_scope('linear_net'):
-        linear_y = tf.layers.dense(linear_net, 1, activation=tf.nn.relu)
-        # linear_y = tf.layers.batch_normalization(linear_y, training=(mode == estimator.ModeKeys.TRAIN))
-        # linear_y = tf.layers.dropout(linear_y, rate=params['dropout'], training=(mode == estimator.ModeKeys.TRAIN))
+    x0 = embedding_net
 
-    with tf.name_scope('cin_net'):
-        field_nums = []
-        hidden_nn_layers = []
-        final_len = 0
-        final_result = []
-        cin_net = tf.reshape(embedding_net,
-                             shape=[-1, len(params['embedding_feature_columns']), params['embedding_size']])
-        field_nums.append(len(params['embedding_feature_columns']))
-        hidden_nn_layers.append(cin_net)
+    cross_dim = x0.shape[1]
 
-        split_tensor0 = tf.split(hidden_nn_layers[0], params['embedding_size'] * [1], 2)
+    # with tf.name_scope('linear_net'):
+    #     linear_y = tf.layers.dense(linear_net, 1, activation=tf.nn.relu)
 
-        for idx, layer_size in enumerate(cross_layers):
-            split_tensor = tf.split(hidden_nn_layers[-1], params['embedding_size'] * [1], 2)
-            dot_result_m = tf.matmul(split_tensor0, split_tensor, transpose_b=True)
-            dot_result_o = tf.reshape(dot_result_m,
-                                      shape=[params['embedding_size'], -1, field_nums[0] * field_nums[-1]])
-            dot_result = tf.transpose(dot_result_o, perm=[1, 0, 2])
+    with tf.variable_scope('cross_layers'):
+        xl = x0
+        for i in range(FLAGS.cross_layers):
+            # wl = tf.reshape(cross_weight[i], shape=[-1, 1])  # (dim * 1)
+            # xlw = tf.matmul(xl, wl)  # (? * 1)
+            # xl = x0 * xlw + xl + cross_bias[i]  # (? * dim)
+            with tf.variable_scope('cross_{}'.format(i)):
+                w = tf.get_variable("weight", [cross_dim], initializer=tf.glorot_normal_initializer())
+                b = tf.get_variable("bias", [cross_dim], initializer=tf.glorot_normal_initializer())
+                xw = tf.tensordot(tf.reshape(xl, [-1, 1, cross_dim]), w, 1)
+                xl = xw * x0 + xl + b
 
-            filters = tf.get_variable(name="f_" + str(idx),
-                                      shape=[1, field_nums[-1] * field_nums[0], layer_size],
-                                      dtype=tf.float32)
-
-            curr_out = tf.nn.conv1d(dot_result, filters=filters, stride=1, padding='VALID')
-
-            # Add bias
-            b = tf.get_variable(name="f_b" + str(idx),
-                                shape=[layer_size],
-                                dtype=tf.float32,
-                                initializer=tf.zeros_initializer())
-            curr_out = tf.nn.bias_add(curr_out, b)
-
-            # Activation
-            curr_out = tf.nn.relu(curr_out)
-            curr_out = tf.transpose(curr_out, perm=[0, 2, 1])
-
-            # Connect direct
-            direct_connect = curr_out
-            next_hidden = curr_out
-            final_len += layer_size
-            field_nums.append(int(layer_size))
-
-            final_result.append(direct_connect)
-            hidden_nn_layers.append(next_hidden)
-
-        result = tf.concat(final_result, axis=1)
-        result = tf.reduce_sum(result, -1)
-        cin_y = tf.layers.dense(result, 1, activation=tf.nn.relu)
-
-    with tf.name_scope('dnn_net'):
-        embedding_net = tf.feature_column.input_layer(features, params['embedding_feature_columns'])
-        dnn_net = tf.reshape(embedding_net,
-                             shape=[-1, len(params['embedding_feature_columns']) * params['embedding_size']])
+    with tf.variable_scope('deep_layers'):
+        dnn_net = x0
         for i in layers:
             dnn_net = tf.layers.dense(dnn_net, i, activation=tf.nn.relu)
             dnn_net = tf.layers.batch_normalization(dnn_net, training=(mode == estimator.ModeKeys.TRAIN))
             dnn_net = tf.layers.dropout(dnn_net, rate=params['dropout'], training=(mode == estimator.ModeKeys.TRAIN))
-        dnn_y = tf.layers.dense(dnn_net, 1, activation=tf.nn.relu)
 
-    logits = tf.concat([linear_y, cin_y, dnn_y], axis=-1)
-    logits = tf.layers.dense(logits, units=1)
+    logits = tf.concat([xl, dnn_net], axis=-1)
+    logits = tf.layers.dense(logits, units=1, activation=None)
     pred = tf.sigmoid(logits)
 
     predictions = {"prob": pred}
@@ -233,11 +189,6 @@ def model_fn(features, labels, mode, params):
 
 
 def main(_):
-    # tf.enable_eager_execution()
-    # dataset = input_fn(['part-r-00000'], 1)
-    # for raw_record in dataset.take(1):
-    #     print(repr(raw_record))
-
     data_dir = FLAGS.train_path
     data_files = []
     for i in range(FLAGS.train_parts):
@@ -246,16 +197,11 @@ def main(_):
     train_files = data_files[:-FLAGS.eval_parts]
     eval_files = data_files[-FLAGS.eval_parts:]
 
-    test_files = []
-    for i in range(FLAGS.test_parts):
-        test_files.append(FLAGS.test_path + 'part-r-{:0>5}'.format(i))
-
     linear_feature_columns, embedding_feature_columns = build_feature_columns(FLAGS.embedding_size)
 
     distribute_strategy = None
     if FLAGS.mirror:
         distribute_strategy = tf.distribute.MirroredStrategy()
-
     config = estimator.RunConfig(
         save_checkpoints_steps=FLAGS.save_checkpoints_steps,
         keep_checkpoint_max=5,
@@ -271,13 +217,12 @@ def main(_):
         'embedding_size': FLAGS.embedding_size,
         "learning_rate": FLAGS.learning_rate,
         "dropout": FLAGS.dropout,
-        "deep_layers": FLAGS.deep_layers,
-        "cross_layers": FLAGS.cross_layers
+        "deep_layers": FLAGS.deep_layers
     }
 
-    xdeepfm = estimator.Estimator(
+    dcn = estimator.Estimator(
         model_fn=model_fn,
-        model_dir='./models/xdeepfm',
+        model_dir='./model/',
         params=model_params,
         config=config
     )
@@ -291,19 +236,14 @@ def main(_):
         eval_spec = estimator.EvalSpec(input_fn=lambda: input_fn(
             eval_files,
             num_epochs=-1,
-            batch_size=FLAGS.batch_size), steps=FLAGS.eval_steps, start_delay_secs=1, throttle_secs=5)
-        start = time()
-        estimator.train_and_evaluate(xdeepfm, train_spec, eval_spec)
-        elapsed = (time() - start)
-        tf.logging.info("Training time used: {0}ms".format(round(elapsed * 1000, 2)))
+            batch_size=FLAGS.batch_size,
+            need_shuffle=True), steps=200, start_delay_secs=1, throttle_secs=5)
+        estimator.train_and_evaluate(dcn, train_spec, eval_spec)
     elif FLAGS.task_type == 'eval':
-        xdeepfm.evaluate(input_fn=lambda: input_fn(eval_files, num_epochs=1, batch_size=FLAGS.batch_size),
-                         steps=FLAGS.eval_steps * 10)
-    elif FLAGS.task_type == 'predict':
-        p = xdeepfm.predict(input_fn=lambda: input_fn(eval_files, num_epochs=1, batch_size=FLAGS.batch_size))
-        tf.logging.info('done predit')
+        dcn.evaluate(input_fn=lambda: input_fn(eval_files, num_epochs=1, batch_size=FLAGS.batch_size), steps=200)
 
 
 if __name__ == '__main__':
+    # tf.enable_eager_execution()
     tf.logging.set_verbosity(tf.logging.INFO)
     tf.app.run(main)
