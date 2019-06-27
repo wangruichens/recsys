@@ -277,7 +277,7 @@ def main(_):
 
     xdeepfm = estimator.Estimator(
         model_fn=model_fn,
-        model_dir='./models/xdeepfm',
+        model_dir='./models/',
         params=model_params,
         config=config
     )
