@@ -15,7 +15,7 @@ print("GPU Available: ", tf.test.is_gpu_available())
 
 FLAGS = tf.app.flags.FLAGS
 # Model
-tf.app.flags.DEFINE_integer("embedding_size", 32, "Embedding size")
+tf.app.flags.DEFINE_integer("embedding_size", 16, "Embedding size")
 tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate")
 tf.app.flags.DEFINE_float("dropout", 0.5, "Dropout rate")
 tf.app.flags.DEFINE_string("task_type", 'train', "Task type {train, infer, eval, export}")
@@ -35,7 +35,8 @@ tf.app.flags.DEFINE_string("export_path", './export/', "Model export path")
 tf.app.flags.DEFINE_integer("batch_size", 256, "Number of batch size")
 tf.app.flags.DEFINE_integer("log_steps", 100, "Log_step_count_steps")
 tf.app.flags.DEFINE_integer("save_checkpoints_steps", 2000, "save_checkpoints_steps")
-tf.app.flags.DEFINE_boolean("mirror", False, "Mirrored Strategy")
+tf.app.flags.DEFINE_integer("num_parallel", 8, "Number of batch size")
+tf.app.flags.DEFINE_boolean("mirror", True, "Mirrored Strategy")
 
 cont_feature = ['_c{0}'.format(i) for i in range(0, 14)]
 cat_feature = ['_c{0}'.format(i) for i in range(14, 40)]
@@ -105,10 +106,10 @@ def _parse_examples(serial_exmp):
 
 def input_fn(filenames, batch_size, num_epochs=-1, need_shuffle=False):
     dataset = tf.data.TFRecordDataset(filenames)
-    dataset = dataset.map(_parse_examples, num_parallel_calls=4).batch(batch_size)
+    dataset = dataset.map(_parse_examples, num_parallel_calls=FLAGS.num_parallel).batch(batch_size)
     if need_shuffle:
-        dataset = dataset.shuffle(buffer_size=100)
-    dataset = dataset.prefetch(buffer_size=100).repeat(num_epochs)
+        dataset = dataset.shuffle(buffer_size=1000)
+    dataset = dataset.prefetch(buffer_size=1000).repeat(num_epochs)
     return dataset
 
 
@@ -127,17 +128,17 @@ def model_fn(features, labels, mode, params):
     # with tf.name_scope('linear_net'):
     #     linear_y = tf.layers.dense(linear_net, 1, activation=tf.nn.relu)
 
-    with tf.variable_scope('cross_layers'):
-        xl = x0
-        for i in range(FLAGS.cross_layers):
-            # wl = tf.reshape(cross_weight[i], shape=[-1, 1])  # (dim * 1)
-            # xlw = tf.matmul(xl, wl)  # (? * 1)
-            # xl = x0 * xlw + xl + cross_bias[i]  # (? * dim)
-            with tf.variable_scope('cross_{}'.format(i)):
-                w = tf.get_variable("weight", [cross_dim], initializer=tf.glorot_normal_initializer())
-                b = tf.get_variable("bias", [cross_dim], initializer=tf.glorot_normal_initializer())
-                xw = tf.tensordot(tf.reshape(xl, [-1, 1, cross_dim]), w, 1)
-                xl = xw * x0 + xl + b
+    # with tf.variable_scope('cross_layers'):
+    #     xl = x0
+    #     for i in range(FLAGS.cross_layers):
+    #         # wl = tf.reshape(cross_weight[i], shape=[-1, 1])  # (dim * 1)
+    #         # xlw = tf.matmul(xl, wl)  # (? * 1)
+    #         # xl = x0 * xlw + xl + cross_bias[i]  # (? * dim)
+    #         with tf.variable_scope('cross_{}'.format(i)):
+    #             w = tf.get_variable("weight", [cross_dim], initializer=tf.glorot_normal_initializer())
+    #             b = tf.get_variable("bias", [cross_dim], initializer=tf.glorot_normal_initializer())
+    #             xw = tf.tensordot(tf.reshape(xl, [-1, 1, cross_dim]), w, 1)
+    #             xl = xw * x0 + xl + b
 
     with tf.variable_scope('deep_layers'):
         dnn_net = x0
@@ -146,7 +147,7 @@ def model_fn(features, labels, mode, params):
             dnn_net = tf.layers.batch_normalization(dnn_net, training=(mode == estimator.ModeKeys.TRAIN))
             dnn_net = tf.layers.dropout(dnn_net, rate=params['dropout'], training=(mode == estimator.ModeKeys.TRAIN))
 
-    logits = tf.concat([xl, dnn_net], axis=-1)
+    logits = tf.concat([dnn_net], axis=-1)
     logits = tf.layers.dense(logits, units=1, activation=None)
     pred = tf.sigmoid(logits)
 
