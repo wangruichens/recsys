@@ -49,7 +49,7 @@ DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369
 平均速度：global_step/sec: 45
 ```
 
-dcn 确实跑的挺快，主要优势在于xT * w 以后得到的是一维标量。计算量会比其他的网络明显小很多。训练速度几乎是deepfm,xdeepfm的3倍~4倍速度。[更多细节看这里](dcn/readme.md)
+dcn 确实跑的挺快，主要优势在于xT * w 以后得到的是一维标量。计算量会比其他的网络明显小很多。训练速度几乎是deepfm,xdeepfm的3倍~4倍速度。[更多细节看这里](dcn/)
 
 ![auc](dcn/auc.png)![loss](dcn/loss.png)
 
