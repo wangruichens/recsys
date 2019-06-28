@@ -1,12 +1,15 @@
 # Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning/tree/master/recsys)。
 
-- deepfm + tf estimator + tf serving + grpc/rest client
-- fm
-- gbdt + lr
-- ftrl (kaggle)
-- cade (Collaborative Denoising Auto-Encoder)
-- xdeepfm + tf estimator (criteo dataset)
-- dcn + tf estimator (criteo dataset)
+- LR (FTRL)
+- DNN
+- FM
+- GBDT + LR
+- CADE (Collaborative Denoising Auto-Encoder)
+- DeepFM (tf serving 保存模型 / grpc/rest client 调用demo)
+- xDeepFM
+- DCN (Deep Cross Network)
+- Deep & Wide
+- DIN (Deep Interest Network)
 
 # Performance Summary
 
