@@ -1,6 +1,4 @@
-# recsys
-
-## Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning/tree/master/recsys)。
+# Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning/tree/master/recsys)。
 
 - deepfm + tf estimator + tf serving + grpc/rest client
 - fm
@@ -10,7 +8,7 @@
 - xdeepfm + tf estimator (criteo dataset)
 - dcn + tf estimator (criteo dataset)
 
-## Performance Summary
+# Performance Summary
 
 - 都采用criteo dataset 2014, 共39个fields。采用相同的数据预处理。embedding size 都选取16维。
 
@@ -28,7 +26,7 @@ DCN           | 0.7961  | 0.78843915     |  0.4508    | 0.46
 DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369 
 
 
-### Deepfm
+## Deepfm
 ```angular2
 论文结果：  AUC = 0.8007 logloss=0.4508
 实验结果：  AUC = 0.7888 logloss=0.4608
@@ -36,7 +34,7 @@ DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369
 ```
 ![auc](deepfm/auc.png)![loss](deepfm/loss.png)
 
-### xDeepfm
+## xDeepfm
 ```angular2
 论文结果：AUC = 0.8012 logloss = 0.4493
 实验结果：AUC = 0.79793376 logloss = 0.45614
@@ -44,7 +42,7 @@ DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369
 ```
 ![auc](xdeepfm/auc.png)![loss](xdeepfm/loss.png)
 
-### DCN (Deep and Cross Network)
+## DCN (Deep and Cross Network)
 ```angular2
 论文结果：AUC = 0.7961 logloss=0.4508
 实验结果：AUC = 0.78843915 logloss =0.46
@@ -55,7 +53,7 @@ dcn 确实跑的挺快，主要优势在于xT * w 以后得到的是一维标量
 
 ![auc](dcn/auc.png)![loss](dcn/loss.png)
 
-### DNN
+## DNN
 ```angular2
 论文结果： AUC = 0.7991 logloss=0.4408
 实验结果： AUC = 0.7773 logloss=0.6369
