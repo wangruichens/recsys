@@ -10,7 +10,7 @@
 
 # Performance Summary
 
-- 都采用criteo dataset, 共39个fields。采用相同的数据预处理。embedding size 都选取16维。
+- 都采用criteo dataset, 共39个fields。采用相同的数据预处理。embedding size 都选取16维。数据处理加转tfrecords都存在[这里](xdeepfm)
 
 - 主要比较不同算法的区别性。对于共有的dnn part，这里我都采用了100,100的二层结构。
 
