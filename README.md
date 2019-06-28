@@ -13,6 +13,16 @@
 
 # Performance Summary
 
+Algorithm     |Paper AUC| Experiment AUC | Paper Loss | Experiment Loss
+--------------|-------: |---------------:|-----------:|----------------:
+DeepFM        | 0.8007  | 0.7888         |  0.4508    | 0.4608
+xDeepFM       | 0.8012  |  0.79793376    |  0.4493    | 0.45614
+DCN           | 0.7961  | 0.78843915     |  0.4508    | 0.46  
+DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369 
+
+
+###### Notes
+
 - 都采用criteo dataset, 共39个fields, [参考 data statistics](https://www.kaggle.com/c/criteo-display-ad-challenge/discussion/9651#latest-51948)。采用相同的数据预处理。embedding size 都选取16维。数据处理加转tfrecords都存在[这里](xdeepfm)
 
 - 主要比较不同算法的区别性。对于共有的dnn part，这里我都采用了100,100的二层结构。
@@ -20,13 +30,6 @@
 - 都采用256 step size。训练总step 1w~5w不等，不同算法需要的迭代次数不同。有些算法容易过拟合，有些可以多跑几轮，取决于模型表达能力。
 
 - 虽然没有经过预处理和调参，与paper中的结果去比较没有什么意义，纯属顺手列在这里，作为参考。
-
-Algorithm     |Paper AUC| Experiment AUC | Paper Loss | Experiment Loss
---------------|-------: |---------------:|-----------:|----------------:
-DeepFM        | 0.8007  | 0.7888         |  0.4508    | 0.4608
-xDeepFM       | 0.8012  |  0.79793376    |  0.4493    | 0.45614
-DCN           | 0.7961  | 0.78843915     |  0.4508    | 0.46  
-DNN           | 0.7991  | 0.7773         |  0.4408    | 0.6369 
 
 
 ## Deepfm
