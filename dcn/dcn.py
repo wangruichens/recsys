@@ -75,8 +75,9 @@ def build_feature_columns(embedding_size):
                    10, 5652, 2172, 3, 100000, 17, 15, 100000, 104, 100000]
 
     for i, j in zip(cont_feature, buckets_cont):
-        # Can not using eplison. if x=0, log (x+eplison) may cause nan loss.
         f_num = tf.feature_column.numeric_column(i, normalizer_fn=lambda x: tf.log(x + 1.0))
+        if i == '_c2':
+            f_num = tf.feature_column.numeric_column(i, normalizer_fn=lambda x: tf.log(x + 4.0))
         f_bucket = tf.feature_column.bucketized_column(f_num, j)
         f_embedding = tf.feature_column.embedding_column(f_bucket, embedding_size)
 
@@ -128,17 +129,17 @@ def model_fn(features, labels, mode, params):
     # with tf.name_scope('linear_net'):
     #     linear_y = tf.layers.dense(linear_net, 1, activation=tf.nn.relu)
 
-    # with tf.variable_scope('cross_layers'):
-    #     xl = x0
-    #     for i in range(FLAGS.cross_layers):
-    #         # wl = tf.reshape(cross_weight[i], shape=[-1, 1])  # (dim * 1)
-    #         # xlw = tf.matmul(xl, wl)  # (? * 1)
-    #         # xl = x0 * xlw + xl + cross_bias[i]  # (? * dim)
-    #         with tf.variable_scope('cross_{}'.format(i)):
-    #             w = tf.get_variable("weight", [cross_dim], initializer=tf.glorot_normal_initializer())
-    #             b = tf.get_variable("bias", [cross_dim], initializer=tf.glorot_normal_initializer())
-    #             xw = tf.tensordot(tf.reshape(xl, [-1, 1, cross_dim]), w, 1)
-    #             xl = xw * x0 + xl + b
+    with tf.variable_scope('cross_layers'):
+        xl = x0
+        for i in range(FLAGS.cross_layers):
+            # wl = tf.reshape(cross_weight[i], shape=[-1, 1])  # (dim * 1)
+            # xlw = tf.matmul(xl, wl)  # (? * 1)
+            # xl = x0 * xlw + xl + cross_bias[i]  # (? * dim)
+            with tf.variable_scope('cross_{}'.format(i)):
+                w = tf.get_variable("weight", [cross_dim], initializer=tf.glorot_normal_initializer())
+                b = tf.get_variable("bias", [cross_dim], initializer=tf.glorot_normal_initializer())
+                xw = tf.tensordot(tf.reshape(xl, [-1, 1, cross_dim]), w, 1)
+                xl = xw * x0 + xl + b
 
     with tf.variable_scope('deep_layers'):
         dnn_net = x0
@@ -147,7 +148,7 @@ def model_fn(features, labels, mode, params):
             dnn_net = tf.layers.batch_normalization(dnn_net, training=(mode == estimator.ModeKeys.TRAIN))
             dnn_net = tf.layers.dropout(dnn_net, rate=params['dropout'], training=(mode == estimator.ModeKeys.TRAIN))
 
-    logits = tf.concat([dnn_net], axis=-1)
+    logits = tf.concat([dnn_net, xl], axis=-1)
     logits = tf.layers.dense(logits, units=1, activation=None)
     pred = tf.sigmoid(logits)
 
