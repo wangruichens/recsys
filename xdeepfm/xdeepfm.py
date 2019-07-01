@@ -16,7 +16,7 @@ tf.app.flags.DEFINE_float("dropout", 0.5, "Dropout rate")
 tf.app.flags.DEFINE_string("task_type", 'train', "Task type {train, infer, eval, export}")
 tf.app.flags.DEFINE_integer("num_epochs", 5, "Number of epochs")
 tf.app.flags.DEFINE_string("deep_layers", '100,100', "deep layers")
-tf.app.flags.DEFINE_string("cross_layers", '20,20,10', "cross layers")
+tf.app.flags.DEFINE_string("cross_layers", '20,10,10', "cross layers")
 
 tf.app.flags.DEFINE_string("train_path", '/home/wangrc/criteo_data/train/', "Data path")
 tf.app.flags.DEFINE_integer("train_parts", 150, "Tfrecord counts")
@@ -30,7 +30,7 @@ tf.app.flags.DEFINE_integer("batch_size", 256, "Number of batch size")
 tf.app.flags.DEFINE_integer("log_steps", 50, "Log_step_count_steps")
 tf.app.flags.DEFINE_integer("eval_steps", 200, "Eval_steps")
 
-tf.app.flags.DEFINE_integer("save_checkpoints_steps", 1000, "save_checkpoints_steps")
+tf.app.flags.DEFINE_integer("save_checkpoints_steps", 2000, "save_checkpoints_steps")
 tf.app.flags.DEFINE_boolean("mirror", True, "Mirrored Strategy")
 
 cont_feature = ['_c{0}'.format(i) for i in range(0, 14)]
@@ -62,6 +62,7 @@ def build_feature_columns(embedding_size):
     c12 = [0.0, 1.0, 2.0]
     c13 = [1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 14.0, 22.0]
     buckets_cont = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13]
+
     buckets_cat = [1460, 583, 10131226, 2202607, 305, 23, 12517, 633, 3, 93145, 5683, 8351592, 3194, 27, 14992, 5461305,
                    10, 5652, 2172, 3, 7046546, 17, 15, 286180, 104, 142571]
 
@@ -69,9 +70,9 @@ def build_feature_columns(embedding_size):
                    10, 5652, 2172, 3, 100000, 17, 15, 100000, 104, 100000]
 
     for i, j in zip(cont_feature, buckets_cont):
-        f_num = tf.feature_column.numeric_column(i,
-                                                 default_value=0,
-                                                 normalizer_fn=lambda x: tf.log(x + 1.0))
+        f_num = tf.feature_column.numeric_column(i, normalizer_fn=lambda x: tf.log(x + 1.0))
+        if i == '_c2':
+            f_num = tf.feature_column.numeric_column(i, normalizer_fn=lambda x: tf.log(x + 4.0))
         f_bucket = tf.feature_column.bucketized_column(f_num, j)
         f_embedding = tf.feature_column.embedding_column(f_bucket, embedding_size)
 
@@ -87,7 +88,7 @@ def build_feature_columns(embedding_size):
         f_ind = tf.feature_column.indicator_column(f_cat)
         f_embedding = tf.feature_column.embedding_column(f_cat, embedding_size)
 
-        # linear_feature_columns.append(f_ind)
+        linear_feature_columns.append(f_ind)
         embedding_feature_columns.append(f_embedding)
 
     return linear_feature_columns, embedding_feature_columns
