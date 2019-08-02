@@ -79,3 +79,22 @@ dcn 确实跑的挺快，主要优势在于xT * w 以后得到的是一维标量
 ```
 
 ![auc](fm/auc.png)![loss](fm/loss.png)
+
+# Performance Summary (Attention based algorithms)
+
+
+###### Notes
+
+- 采用Amazon Electro dataset, 负样本随机生成。
+
+Algorithm     |Paper AUC| Experiment AUC | Paper Loss | Experiment Loss
+--------------|-------: |---------------:|-----------:|----------------:
+DIN        | 0.8818  | 0.7447         |  None    | None
+
+## DIN
+```angular2
+论文结果：  AUC = 0.8818 
+实验结果：  AUC = 0.7447 
+平均速度：global_step/sec: 124
+```
+![auc](din/auc.png)![loss](din/loss.png)
