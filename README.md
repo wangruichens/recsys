@@ -97,4 +97,5 @@ DIN        | 0.8818  | 0.7447         |  None    | None
 实验结果：  AUC = 0.7447 
 平均速度：global_step/sec: 124
 ```
+论文中的AUC很高，个人认为主要是正负样本构造的问题。
 ![auc](din/auc.png)![loss](din/loss.png)
