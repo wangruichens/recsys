@@ -1,5 +1,10 @@
 # Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning/tree/master/recsys)。
 
+> - [Performance Summary (Traditional Feature Interaction)](#performance-summary-traditional-feature-interaction)
+> - [Performance Summary (Attention based algorithms)](#performance-summary-attention-based-algorithms)
+> - [Performance Summary (Collaborative Filtering Based Algorithms)](#performance-summary-cf-based-algorithms)
+
+## 算法：
 - LR (FTRL)
 - DNN
 - FM
@@ -10,8 +15,9 @@
 - DCN (Deep Cross Network)
 - Deep & Wide
 - DIN (Deep Interest Network)
+- VAE-CF (Variational Autoencoders for Collaborative Filtering)
 
-# Performance Summary
+# Performance Summary (Traditional Feature Interaction)
 
 Algorithm     |Paper AUC| Experiment AUC | Paper Loss | Experiment Loss
 --------------|-------: |---------------:|-----------:|----------------:
@@ -83,13 +89,13 @@ dcn 确实跑的挺快，主要优势在于xT * w 以后得到的是一维标量
 # Performance Summary (Attention based algorithms)
 
 
-###### Notes
-
-- 采用Amazon Electro dataset, 负样本随机生成。
-
 Algorithm     |Paper AUC| Experiment AUC | Paper Loss | Experiment Loss
 --------------|-------: |---------------:|-----------:|----------------:
 DIN        | 0.8818  | 0.7447         |  None    | None
+
+###### Notes
+
+- 采用Amazon Electro dataset, 负样本随机生成。
 
 ## DIN
 ```angular2
@@ -100,3 +106,46 @@ DIN        | 0.8818  | 0.7447         |  None    | None
 论文中的AUC很高，与正负样本构造的选择很有关系。如果直接全局负采样，模型很容易跑出auc 0.9以上。 因为热门item一般只占全局中很少的一部分。一个解决方法是先把item按频率分桶，然后在生成对应正样本的负样本时，在相同频率的桶中抽取负样本。 
 
 ![auc](din/auc.png)![loss](din/loss.png)
+
+
+# Performance Summary (Collaborative Filtering Based Algorithms)
+
+
+
+Algorithm     |Paper Recall@20| Experiment Recall@20 | Paper NDCG@100 | Experiment NDCG@100
+--------------|-------: |---------------:|-----------:|----------------:
+ Multi-VAE^{PR}       | 0.395  | 0.3943        |  0.42478    | 0.426 |
+Multi-DAE       | 0.387  | 0.38739         |  0.419    | 0.41993 | 
+
+
+###### Notes
+
+- 采用[MovieLens 20M dataset](http://files.grouplens.org/datasets/movielens/ml-20m.zip)
+
+## VAE-CF
+
+Multi-VAE^{PR} 修改了目标函数，加入了一个beta约束。当beta小于1时，先验的约束减小，拟合的权重变大。采用模拟退火算法来比较高效的得到beta的合适值。
+
+[original code ref](https://github.com/dawenl/vae_cf/blob/master/VAE_ML20M_WWW2018.ipynb)
+
+![img](vae-cf/img/4.png)![img](vae-cf/img/5.png)
+
+### 基础回顾：
+
+#### Variational Inference 变分推断
+
+原paper:[Variational Inference: A Review for Statisticians](https://github.com/wangruichens/papers-machinelearning/blob/master/basis/Variational%20Inference:%20A%20Review%20for%20Statisticians.pdf)
+
+笔记：[Variational Inference](https://github.com/wangruichens/notes/blob/master/variational%20inference/Starting%20from%20Information.pdf), 
+[Variational AutoEncoder](https://github.com/wangruichens/notes/blob/master/variational%20autoencoder/variational%20auto-encoder.pdf)
+
+Variational Inference case study : GMM [ref](https://blog.csdn.net/qy20115549/article/details/86694325)
+
+![img](vae-cf/img/3.png)
+
+code : [vi_gmm.py](vae-cf/vi_gmm.py)
+
+![img](vae-cf/img/2.png)
+
+#### Variational AutoEncoder
+
