@@ -130,9 +130,9 @@ Multi-VAE^{PR} 修改了目标函数，加入了一个beta约束。当beta小于
 
 ![img](vae-cf/img/4.png)![img](vae-cf/img/5.png)
 
-### 基础回顾：
+#### 知识储备：
 
-#### Variational Inference 变分推断
+##### Variational Inference 变分推断
 
 原paper:[Variational Inference: A Review for Statisticians](https://github.com/wangruichens/papers-machinelearning/blob/master/basis/Variational%20Inference:%20A%20Review%20for%20Statisticians.pdf)
 
@@ -147,5 +147,5 @@ code : [vi_gmm.py](vae-cf/vi_gmm.py)
 
 ![img](vae-cf/img/2.png)
 
-#### Variational AutoEncoder
+##### Variational AutoEncoder
 
