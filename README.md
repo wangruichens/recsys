@@ -149,6 +149,8 @@ code : [vi_gmm.py](vae-cf/vi_gmm.py)
 
 ##### Variational AutoEncoder
 
+![img](vae-cf/img/6.png)
+
 reparameterization trick 
 - e~N(0,1)
 - z=mu+sigma*e
