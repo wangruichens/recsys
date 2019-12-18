@@ -137,7 +137,7 @@ Multi-VAE^{PR} 修改了目标函数，加入了一个beta约束。当beta小于
 原paper:[Variational Inference: A Review for Statisticians](https://github.com/wangruichens/papers-machinelearning/blob/master/basis/Variational%20Inference:%20A%20Review%20for%20Statisticians.pdf)
 
 笔记：[Variational Inference](https://github.com/wangruichens/notes/blob/master/variational%20inference/Starting%20from%20Information.pdf), 
-[Variational AutoEncoder](https://github.com/wangruichens/notes/blob/master/variational%20autoencoder/variational%20auto-encoder.pdf)
+
 
 Variational Inference case study : GMM [ref](https://blog.csdn.net/qy20115549/article/details/86694325)
 
@@ -149,3 +149,8 @@ code : [vi_gmm.py](vae-cf/vi_gmm.py)
 
 ##### Variational AutoEncoder
 
+reparameterization trick 
+- e~N(0,1)
+- z=mu+sigma*e
+
+[Variational AutoEncoder](https://github.com/wangruichens/notes/blob/master/variational%20autoencoder/variational%20auto-encoder.pdf)
