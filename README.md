@@ -116,6 +116,7 @@ Algorithm     |Paper Recall@20| Experiment Recall@20 | Paper NDCG@100 | Experime
 --------------|-------: |---------------:|-----------:|----------------:
  Multi-VAE^{PR}       | 0.395  | 0.3943        |  0.42478    | 0.426 |
 Multi-DAE       | 0.387  | 0.38739         |  0.419    | 0.41993 | 
+Logistic-VAE | 0.388 | 0.38821 | 0.419 | 0.41869 |
 
 
 ###### Notes
@@ -125,6 +126,8 @@ Multi-DAE       | 0.387  | 0.38739         |  0.419    | 0.41993 |
 ## VAE-CF
 
 Multi-VAE^{PR} 修改了目标函数，加入了一个beta约束。当beta小于1时，先验的约束减小，拟合的权重变大。采用模拟退火算法来比较高效的得到beta的合适值。
+
+另外采用multinomial分布来计算最大似然函数，而不是采用gaussian或者logistic，实验结果也确实证明在top n 排序中采用多项分布的结果更好一些。
 
 [original code ref](https://github.com/dawenl/vae_cf/blob/master/VAE_ML20M_WWW2018.ipynb)
 

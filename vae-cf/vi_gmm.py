@@ -61,20 +61,20 @@ class gmm():
         return elbo
 
     def plot(self, size):
-        sns.set_style("whitegrid")
         for i in range(int(self.n / size)):
-            sns.distplot(data[size * i: (i + 1) * size], rug = True)
+            c=sns.color_palette('Set1', 3)
+            sns.kdeplot(data[size * i: (i + 1) * size],shade=True, color=c[i])
             x = np.linspace(self.m[i] - 3 * self.sigma, self.m[i] + 3 * self.sigma, 100)
-            plt.plot(x, norm.pdf(x, self.m[i], self.sigma), color = 'black')
+            plt.plot(x, norm.pdf(x, self.m[i], self.sigma), color= 'black',linewidth=3,ls='--')
         plt.show()
 
 
 if __name__ == "__main__":
     # generate data
-    number = 1000
-    clusters = 3
+    number = 1500
+    clusters = 2
     sigma = 1
-    mu = np.array([x*2 for x in range(clusters)])
+    mu = np.array([x*1 for x in range(clusters)])
     data = []
     # x-N(mu, sigma)
     for i in range(clusters):

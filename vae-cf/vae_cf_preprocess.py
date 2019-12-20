@@ -94,6 +94,7 @@ def split_train_test_proportion(data, test_prop=0.2):
 
         if n_items_u >= 5:
             idx = np.zeros(n_items_u, dtype = 'bool')
+            # Random choice 20% as test, 80% as train (based on what to infer)
             idx[np.random.choice(n_items_u, size = int(test_prop * n_items_u), replace = False).astype('int64')] = True
 
             tr_list.append(group[np.logical_not(idx)])

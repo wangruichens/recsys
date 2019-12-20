@@ -30,6 +30,8 @@ class MultiDAE(object):
         self.construct_placeholders()
 
     def construct_placeholders(self):
+        # dims[0] == item size
+        # user interaction seq
         self.input_ph = tf.placeholder(
             dtype = tf.float32, shape = [None, self.dims[0]])
         self.keep_prob_ph = tf.placeholder_with_default(1.0, shape = None)
@@ -42,8 +44,9 @@ class MultiDAE(object):
         log_softmax_var = tf.nn.log_softmax(logits)
 
         # per-user average negative log-likelihood
-        neg_ll = -tf.reduce_mean(tf.reduce_sum(
-            log_softmax_var * self.input_ph, axis = 1))
+        # Multinomial likelihood
+        neg_ll = -tf.reduce_mean(tf.reduce_sum(log_softmax_var * self.input_ph, axis = 1))
+
         # apply regularization to weights
         reg = l2_regularizer(self.lam)
         reg_var = apply_regularization(reg, self.weights)
@@ -109,11 +112,16 @@ class MultiVAE(MultiDAE):
         self._construct_weights()
 
         saver, logits, KL = self.forward_pass()
+        # log_softmax_var => log pi(z) => f_{theta}(z)
         log_softmax_var = tf.nn.log_softmax(logits)
 
-        neg_ll = -tf.reduce_mean(tf.reduce_sum(
-            log_softmax_var * self.input_ph,
-            axis = -1))
+        # multinomial likelihood
+        neg_ll = -tf.reduce_mean(tf.reduce_sum(log_softmax_var * self.input_ph, axis = -1))
+
+        # # logistic loss or gaussian loss
+        # neg_ll = tf.reduce_mean(tf.reduce_sum(
+        #     tf.nn.sigmoid_cross_entropy_with_logits(labels = self.input_ph, logits = log_softmax_var)))
+
         # apply regularization to weights
         reg = l2_regularizer(self.lam)
 
@@ -132,6 +140,7 @@ class MultiVAE(MultiDAE):
 
         return saver, logits, neg_ELBO, train_op, merged
 
+    # encoder
     def q_graph(self):
         mu_q, std_q, KL = None, None, None
 
@@ -145,13 +154,16 @@ class MultiVAE(MultiDAE):
                 h = tf.nn.tanh(h)
             else:
                 mu_q = h[:, :self.q_dims[-1]]
+                # log(var)^{2}
                 logvar_q = h[:, self.q_dims[-1]:]
 
                 std_q = tf.exp(0.5 * logvar_q)
+                # KL divergence for N(0,1), Derivation ref the vae paper.
                 KL = tf.reduce_mean(tf.reduce_sum(
                     0.5 * (-logvar_q + tf.exp(logvar_q) + mu_q ** 2 - 1), axis = 1))
         return mu_q, std_q, KL
 
+    # decoder
     def p_graph(self, z):
         h = z
 
@@ -163,14 +175,14 @@ class MultiVAE(MultiDAE):
         return h
 
     def forward_pass(self):
-        # q-network
+        # q-network (Encoder)
         mu_q, std_q, KL = self.q_graph()
         epsilon = tf.random_normal(tf.shape(std_q))
 
         sampled_z = mu_q + self.is_training_ph * \
                     epsilon * std_q
 
-        # p-network
+        # p-network (Decoder)
         logits = self.p_graph(sampled_z)
 
         return tf.train.Saver(), logits, KL

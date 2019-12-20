@@ -29,10 +29,15 @@ def load_train_data(csv_file):
     data = sparse.csr_matrix((np.ones_like(rows),
                               (rows, cols)), dtype = 'float64',
                              shape = (n_users, n_items))
+    print('train data shape :', data.shape)
     return data
 
 
+# about 11w users and 2w items
 train_data = load_train_data('train.csv')
+print(train_data.shape)
+print(train_data[0])
+print('load train data finished..')
 
 
 def load_tr_te_data(csv_file_tr, csv_file_te):
@@ -49,12 +54,15 @@ def load_tr_te_data(csv_file_tr, csv_file_te):
                                  (rows_tr, cols_tr)), dtype = 'float64', shape = (end_idx - start_idx + 1, n_items))
     data_te = sparse.csr_matrix((np.ones_like(rows_te),
                                  (rows_te, cols_te)), dtype = 'float64', shape = (end_idx - start_idx + 1, n_items))
+    print('tr shape :', data_tr.shape)
+    print('te shape :', data_te.shape)
     return data_tr, data_te
 
 
 vad_data_tr, vad_data_te = load_tr_te_data('validation_tr.csv', 'validation_te.csv')
 
 N = train_data.shape[0]
+# Users idx
 idxlist = range(N)
 
 # training batch size
@@ -115,6 +123,7 @@ p_dims = [200, 600, n_items]
 tf.reset_default_graph()
 vae = MultiVAE(p_dims, lam = 0.0, random_seed = 98765)
 
+# logits(predict value), loss (ELBO+KL)
 saver, logits_var, loss_var, train_op_var, merged_var = vae.build_graph()
 
 ndcg_var = tf.Variable(0.0)
@@ -165,9 +174,12 @@ if do_train:
                 end_idx = min(st_idx + batch_size, N)
                 X = train_data[idxlist[st_idx:end_idx]]
 
+                # X stands for user interactions with items
                 if sparse.isspmatrix(X):
                     X = X.toarray()
+                # X.shape = (batch size, item size)
                 X = X.astype('float32')
+                # print(len(X[0]))
 
                 if total_anneal_steps > 0:
                     anneal = min(anneal_cap, 1. * update_count / total_anneal_steps)
@@ -259,7 +271,7 @@ if do_train or do_eval:
     print("Test Recall@20=%.5f (%.5f)" % (np.mean(r20_list), np.std(r20_list) / np.sqrt(len(r20_list))))
     print("Test Recall@50=%.5f (%.5f)" % (np.mean(r50_list), np.std(r50_list) / np.sqrt(len(r50_list))))
 
-train_dae = 'True'
+train_dae = False
 if train_dae and do_train:
     p_dims = [200, n_items]
     tf.reset_default_graph()
