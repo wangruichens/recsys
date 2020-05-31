@@ -1,4 +1,4 @@
-# Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning/tree/master/recsys)。
+# Recsys algorithms, [相关paper目录](https://github.com/wangruichens/papers-machinelearning)。
 
 > - [Performance Summary (Traditional Feature Interaction)](#performance-summary-traditional-feature-interaction)
 > - [Performance Summary (Attention based algorithms)](#performance-summary-attention-based-algorithms)
